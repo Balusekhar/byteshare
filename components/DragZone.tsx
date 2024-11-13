@@ -10,6 +10,7 @@ import {toast} from "sonner"
 function DragZone() {
     const [files, setFiles] = useState<File[]>([]);
     const [folderId,setFolderId] = useState<string>("")
+    console.log(folderId)
     const [uploading, setUploading] = useState(false);
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
