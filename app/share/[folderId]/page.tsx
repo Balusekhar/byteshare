@@ -2,14 +2,15 @@ import FileDownloadCard from "@/components/FileDownloadCard";
 import AnimatedGridPattern from "@/components/ui/animated-grid-pattern";
 import { cn } from "@/lib/utils";
 
+type Params = Promise<{ folderId: string }>;
 
-async function Page({ params }: { params: { folderId: string } }) {
-  const { folderId } = params;
+async function Page({ params }: { params: Params }) {
+  const { folderId } = await params; // Await the params directly
 
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/upload?folderId=${folderId}`, {
       method: 'GET',
-      cache: 'no-store',
+      cache: 'force-cache',
       headers: {    
         'Content-Type': 'application/json',
       },
