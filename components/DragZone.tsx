@@ -1,24 +1,23 @@
 "use client";
 
-import React, {useCallback, useState} from "react";
-import {useDropzone} from "react-dropzone";
-import {FilePlus, LoaderCircle, UploadCloud} from "lucide-react"; // Icons
-import {Button} from "@/components/ui/button";
+import React, { useCallback, useState, useEffect } from "react";
+import { useDropzone } from "react-dropzone";
+import { FilePlus, LoaderCircle, UploadCloud } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import axios from "axios";
-import {toast} from "sonner";
+import { toast } from "sonner";
 import FileSharingDialog from "@/components/FileSharingDialog";
-import {FilePreviewList} from "@/components/FilePreview"; // Import the dialog component
+import { FilePreviewList } from "@/components/FilePreview";
 
 function DragZone() {
     const [files, setFiles] = useState<File[]>([]);
     const [folderId, setFolderId] = useState<string>("");
     const [uploading, setUploading] = useState(false);
-    const [isDialogOpen, setIsDialogOpen] = useState(false); // Set to false initially
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [fileUrl, setFileUrl] = useState("");
 
-
     const onDrop = useCallback((acceptedFiles: File[]) => {
-        const maxSizeInBytes = 500 * 1024 * 1024; // 500MB in bytes
+        const maxSizeInBytes = 500 * 1024 * 1024;
 
         const filteredFiles = acceptedFiles.filter((file) => {
             if (file.size > maxSizeInBytes) {
@@ -31,7 +30,7 @@ function DragZone() {
         setFiles((prevFiles) => [...prevFiles, ...filteredFiles]);
     }, []);
 
-    const {getRootProps, getInputProps, isDragActive} = useDropzone({onDrop});
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
     const removeFile = (file: File) => {
         setFiles(files.filter((f) => f !== file));
@@ -40,16 +39,19 @@ function DragZone() {
     const handleSend = async () => {
         setUploading(true);
         try {
-            const {data} = await axios.post('/api/upload', {
+            const { data } = await axios.post('/api/upload', {
                 files: files.map(file => ({
                     name: file.name,
                     type: file.type,
                 })),
             });
 
-            const {presignedUrls} = data;
+            const { presignedUrls } = data;
             const receivedFolderId = presignedUrls[0].folderId;
             setFolderId(receivedFolderId);
+
+            // Set the file URL directly using receivedFolderId to avoid dependency on the `folderId` state.
+            setFileUrl(`${process.env.NEXT_PUBLIC_SITE_URL}/share/${receivedFolderId}`);
 
             await Promise.all(
                 files.map((file, index) => {
@@ -63,13 +65,19 @@ function DragZone() {
             );
             setUploading(false);
             setFiles([]);
-            setFileUrl("https://localhost:3000/share/" + folderId);
-            setIsDialogOpen(true); // Open dialog after upload
+            setIsDialogOpen(true);
         } catch (error) {
+            setUploading(false);
             toast.error("Error uploading file");
             console.error("Error uploading file:", error);
         }
     };
+
+    // Log folderId and fileUrl once they have updated
+    useEffect(() => {
+        console.log("Updated folderId:", folderId);
+        console.log("Updated fileUrl:", fileUrl);
+    }, [folderId, fileUrl]);
 
     return (
         <div className="flex items-center justify-center w-full">
@@ -103,7 +111,6 @@ function DragZone() {
                     )}
                 </div>
 
-                {/* File Preview List */}
                 {files.length > 0 && (
                     <>
                         <FilePreviewList files={files} onRemoveFile={removeFile}/>
@@ -128,11 +135,10 @@ function DragZone() {
                 )}
             </div>
 
-            {/* File Sharing Dialog */}
             <FileSharingDialog
                 isOpen={isDialogOpen}
                 onClose={() => setIsDialogOpen(false)}
-                fileUrl={fileUrl} // Pass the generated file URL
+                fileUrl={fileUrl}
             />
         </div>
     );
