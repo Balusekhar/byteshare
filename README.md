@@ -1,6 +1,6 @@
 # ByteShare
 
-![Landing Page](./landingpage.png)
+![Landing Page](https://byteshare-ecru.vercel.app/landingpage.png)
 
 ByteShare is a simple, fast, and secure file-sharing platform built with modern web technologies. Share files instantly without hassle, ensuring your data stays private and accessible only to the intended recipients.
 
